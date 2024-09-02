@@ -326,4 +326,324 @@ db.products.find({}).sort({
     name: -1
 }).limit(4)
 
+// update one syntax
+// update product set category = "food" where _id =1
+db.products.updateOne({
+    _id: 1
+}, {
+    $set: {
+        category: 'food'
+    }
+})
+// update product set category = "food" where _id =2
+db.products.updateOne({
+    _id: 2
+}, {
+    $set: {
+        category: 'food'
+    }
+})
+// update products set tags = ["food"] where category =  "food" and tags is null
+db.products.updateMany({
+    $and: [
+        {
+            category: {
+                $eq: 'food'
+            }
+        },
+        {
+            tags: {
+                $exists: false
+            }
+        }
+    ]
+}, {
+    $set: {
+        tags: ['food']
+    }
+})
+// insert wrong document
+db.products.insertOne({
+    _id: 9,
+    name: 'ups salah',
+    wrong: 'salah'
+})
+// replace document with id 9
+db.products.replaceOne({
+    _id: 9
+}, {
+    name: 'Adidas Sepatu Lari Pria',
+    price: new NumberLong("1100000"),
+    category: "shoes",
+    tags: [
+        'adidas', 'shoes', 'running'
+    ]
+})
+
+db.products.find()
+
+//update products set stock = 0
+db.products.updateMany({}, {
+    $set: {
+        stock: 0
+    }
+})
+// update products set stock = stock + 10
+db.products.updateMany({}, {
+    $inc: {
+        stock: 10
+    }
+})
+// alter table customers change name full_name
+db.customers.updateMany({}, {
+    $rename: {
+        name: 'full_name'
+    }
+})
+// update customers set wrong  = 'Ups'
+db.customers.updateMany({}, {
+    $set: {
+        wrong: 'ups'
+    }
+})
+// alter table customers drop column wrong
+db.customers.updateMany({}, {
+    $unset: {
+        wrong: ''
+    }
+})
+// update products set lastModifiedDate = current_date()
+db.products.updateMany({}, {
+    $currentDate: {
+        lastModifiedDate: {
+            $type: 'date'
+        }
+    }
+})
+
+db.products.find()
+db.customers.find()
+
+//update products set ratings = [90,80,70]
+db.products.updateMany({}, {
+    $set: {
+        ratings: [90, 80, 70]
+    }
+})
+// update first element of array, query must include array fields
+db.products.updateMany({
+    ratings: 90
+}, {
+    $set: {
+        'ratings.$': 100
+    }
+})
+// update all element of array to 100
+db.products.updateMany({}, {
+    $set: {
+        'ratings.$[]': 100
+    }
+})
+// update products set ratings = [90,80,70]
+db.products.updateMany({}, {
+    $set: {
+        ratings: [90, 80, 70]
+    }
+})
+// update element of array based on arrayfilters
+db.products.updateMany({}, {
+    $set: {
+        'ratings.$[element]' : 100
+    }
+}, {
+    arrayFilters: [
+        {
+            element: {
+                $gte: 80
+            }
+        }
+    ]
+})
+// update element of array with given index
+db.products.updateMany({}, {
+    $set: {
+        'ratings.0': 50,
+        'ratings.1': 60
+    }
+})
+
+db.products.find()
+db.products.find({_id: 1})
+
+//  add "pupular" to array if not exists
+db.products.updateOne({_id: 1}, {
+    $addToSet: {
+        tags: 'popular'
+    }
+})
+
+// remove first element of array
+db.products.updateOne({_id: 1}, {
+    $pop: {
+        ratings: -1
+    }
+})
+
+db.products.find({_id: 2})
+
+// remove last element of array
+db.products.updateOne({_id: 2}, {
+    $pop: {
+        ratings: 1
+    }
+})
+// update products set rating  = [90,80,70]
+db.products.updateMany({}, {
+    $set: {
+        ratings: [90, 80, 70]
+    }
+})
+// remove all element where rating >=80
+db.products.updateMany({}, {
+    $pull: {
+        ratings: {
+            $gte: 80
+        }
+    }
+})
+db.products.find()
+
+// add 0 to ratings
+db.products.updateMany({}, {
+    $push: {
+        ratings: 100
+    }
+})
+
+db.products.updateMany({}, {
+    $push: {
+        ratings: 0
+    }
+})
+
+//remove element 100 and 0
+db.products.updateMany({}, {
+    $pullAll: {
+        ratings: [100, 0]
+    }
+})
+// add 100, 200, 300 to ratings, kalau push bisa duplikat jika ada data yang sama
+db.products.updateMany({}, {
+    $push: {
+        ratings: {
+            $each: [100, 200, 300]
+        }
+    }
+})
+
+// add trending, popular to tags , jadi biar gak duplikat nambahinnya pake addtoset
+db.products.updateMany({}, {
+    $addToSet: {
+        tags: {
+            $each: ['trending', 'popular']
+        }
+    }
+})
+//add hot in position 1, di index 1 nambahinnya
+db.products.updateMany({}, {
+    $push: {
+        tags: {
+            $each: ['hot'],
+            $position: 1
+        }
+    }
+})
+//add all element, and sort desc
+db.products.updateMany({}, {
+    $push: {
+        ratings: {
+            $each: [100, 200, 300, 400, 500],
+            $sort: -1
+        }
+    }
+})
+//add all element , but limit with slice from behind diambil 10 dari paling belakang
+db.products.updateMany({}, {
+    $push: {
+        ratings: {
+            $each: [100, 200, 300, 400, 500],
+            $slice: 10,
+            $sort: -1
+        }
+    }
+})
+
+// insert spammer document
+db.customers.insertOne({
+    _id: "spammer",
+    full_name: "Spammer"
+})
+
+db.customers.find()
+// delete document by _id
+db.customers.deleteOne({
+    _id: "spammer"
+})
+// insert many spammer documents
+db.customers.insertMany([
+    {
+        _id: "spammer1",
+        full_name: "Spammer"
+    },
+    {
+        _id: "spammer2",
+        full_name: "Spammer"
+    },
+    {
+        _id: "spammer3",
+        full_name: "Spammer"
+    }
+])
+// delete many documents
+db.customers.deleteMany({
+    _id: {
+        $regex: "spammer"
+    }
+})
+db.customers.find()
+
+// operasi bulk yang dalam satu request, kita bisa mengirim banyak perintah
+db.customers.bulkWrite([
+    {
+        insertOne: {
+            document: {
+                _id: "aidil",
+                full_name: "Aidil"
+            }
+        }
+    },
+    {
+        insertOne: {
+            document: {
+                _id: "adam",
+                full_name: "Adam"
+            }
+        }
+    },
+    {
+        updateMany: {
+            filter: {
+                _id: {
+                    $in: ['aidil', 'adam', 'baik hati']
+                }
+            },
+            update: {
+                $set: {
+                    full_name: 'Aidil Adam Baik Hati'
+                }
+            }
+        }
+    }
+])
+
 
