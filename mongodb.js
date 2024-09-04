@@ -646,4 +646,280 @@ db.customers.bulkWrite([
     }
 ])
 
+// create index at category in products collection
+db.products.createIndex({
+    category: 1
+})
 
+db.products.dropIndex("category_1")
+
+// find products by category (will use index)
+db.products.find({
+    category: 'food'
+})
+
+// debuging without index
+db.products.find({
+    category: 'food'
+}).explain()
+
+// debugging with index
+db.products.find({
+    category: 'food'
+}).sort({
+    category:1
+}).explain()
+
+db.products.find({
+    category: 'food'
+}).sort({
+    category:-1
+}).explain()
+
+// debuging without index
+db.products.find({
+    tags: 'samsung'
+}).explain()
+// debuging without index
+db.products.find({
+    category: 'food',
+    tags: "samsung"
+}).explain()
+
+// Create index at price and tags in products collection
+db.products.createIndex({
+    stock: 1,
+    tags: 1
+})
+
+// find products by stock and tags  (will use index)
+db.products.find({
+    stock: 10,
+    tags: "popular"
+})
+
+// debuging without index
+db.products.find({
+    stock: 10,
+    tags: "popular"
+}).explain()
+
+db.products.find({
+    stock: 10
+}).explain()
+
+// debug with index
+db.products.find({
+    tags: 'popular'
+}).explain()
+
+db.products.find({
+    name: "samsung",
+    tags: "popular"
+}).explain()
+
+
+// create index text
+db.products.createIndex({
+    name: 'text',
+    category: 'text',
+    tags: 'text'
+}, {
+    weights:{
+        name: 10,
+        category: 5,
+        tags: 1
+    }
+})
+
+// search products with text "mie"
+db.products.find({
+    $text: {
+        $search: 'mie'
+    }
+})
+
+// search products with text "mie"  OR "laptop"
+db.products.find({
+    $text: {
+        $search: 'mie laptop'
+    }
+})
+
+//search products with text '"mie sedap"'
+db.products.find({
+    $text: {
+        $search: '"mie sedap"'
+    }
+})
+
+// search products with text "mie" and NOT "sedap"
+db.products.find({
+    $text: {
+        $search: 'mie -sedap'
+    }
+})
+
+// Debugging query optimization
+db.products.find({
+    $text: {
+        $search: 'mie -sedap'
+    }
+}).explain()
+
+// meta
+db.products.find({
+    $text: {
+        $search: 'mie laptop'
+    }
+}, {
+    searchScore: {
+        $meta: 'textScore'
+    }
+})
+
+// membuat wild card index
+db.customers.createIndex({
+    "customFields.$**" : 1
+})
+
+// insert many customers
+db.customers.insertMany([
+    {
+        _id: "budi",
+        full_name: "Budi",
+        customFields: {
+            hobby: "Gaming",
+            university: "Universitas Belum Ada"
+        }
+    },
+    {
+        _id: "rully",
+        full_name: "Rully",
+        customFields: {
+            ipk: 3.2,
+            university: "Universitas Belum Ada"
+        }
+    },
+    {
+        _id: "rudi",
+        full_name: "Rudi",
+        customFields: {
+            motherName: "Tini",
+            passion: "Entepreneur"
+        }
+    }
+])
+
+// debug wilcard index
+db.customers.find({
+    "customFields.passion" : "Entepreneur"
+}).explain();
+
+db.customers.find({
+    "customFields.ipk" : 3.2
+}).explain();
+
+db.customers.find({
+    "customFields.hobby" : "Gaming"
+}).explain();
+
+// Create session collection
+db.createCollection("sessions");
+// create ttl index
+db.sessions.createIndex({
+    createdAt: 1
+}, {
+    expireAfterSeconds: 10
+})
+// will expire after 10 seconds, but background job run every 60 seconds
+db.sessions.insertOne({
+    _id: 1,
+    session: "Session 1",
+    createdAt: new Date()
+})
+// create unique index in email
+db.customers.createIndex({
+    email: 1
+}, {
+    unique: true,
+    sparse: true
+})
+
+// update customers set email = ? where_id = ?
+db.customers.updateOne({
+    _id: "eko"
+}, {
+    $set: {
+        email: "eko@example.com"
+    }
+})
+
+//error duplicate email
+db.customers.updateOne({
+    _id: "joko"
+}, {
+    $set: {
+        email: "eko@example.com"
+    }
+})
+// not using index
+db.customers.find({
+    full_name : "eko Kurniawan Khannedy"
+});
+
+// create unique index in full_name
+db.customers.createIndex({
+    full_name: 1
+}, {
+    collation: {
+        locale: 'en',
+        strength: 2
+    }
+})
+
+// using index
+db.customers.find({
+    full_name : "eko Kurniawan Khannedy"
+}).collation({
+    locale: 'en',
+    strength: 2
+});
+
+// create partial index
+db.products.createIndex({
+    price: 1
+}, {
+    partialFilterExpression: {
+        stock: {
+            $gt: 0
+        }
+    }
+})
+
+// not using index
+db.products.find({
+    price: 2500
+})
+
+// debug query with partial index
+db.products.find({
+    price: {
+        $eq: 2500
+    },
+    stock: {
+        $gt: 0
+    }
+})
+
+
+use admin
+
+db.createUser({
+    user: 'mongo',
+    pwd: 'mongo',
+    roles: [
+        'userAdminAnyDatabase',
+        'readWriteAnyDatabase'
+    ]
+})
