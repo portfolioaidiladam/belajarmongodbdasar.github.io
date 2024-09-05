@@ -646,11 +646,15 @@ db.customers.bulkWrite([
     }
 ])
 
+db.customers.getIndexes()
+
 // create index at category in products collection
 db.products.createIndex({
     category: 1
 })
+db.products.getIndexes()
 
+// kalau pengen hapus
 db.products.dropIndex("category_1")
 
 // find products by category (will use index)
@@ -658,25 +662,26 @@ db.products.find({
     category: 'food'
 })
 
-// debuging without index
+// debuging without index, kalau pengen tau ini menggunakan index apa ndak ( pastikan ada stage: 'IXSCAN',)
 db.products.find({
     category: 'food'
 }).explain()
 
 // debugging with index
+// sortnya menggunakan ASC
 db.products.find({
     category: 'food'
 }).sort({
     category:1
 }).explain()
-
+// sortnya mengunakan DES
 db.products.find({
     category: 'food'
 }).sort({
     category:-1
 }).explain()
 
-// debuging without index
+// debuging without index (stage: 'COLLSCAN')
 db.products.find({
     tags: 'samsung'
 }).explain()
@@ -691,6 +696,7 @@ db.products.createIndex({
     stock: 1,
     tags: 1
 })
+db.products.getIndexes()
 
 // find products by stock and tags  (will use index)
 db.products.find({
@@ -698,26 +704,26 @@ db.products.find({
     tags: "popular"
 })
 
-// debuging without index
+
 db.products.find({
     stock: 10,
     tags: "popular"
-}).explain()
-
+})
+// debug with index
 db.products.find({
     stock: 10
 }).explain()
 
-// debug with index
+// debuging without index
 db.products.find({
     tags: 'popular'
 }).explain()
 
+// debuging without index
 db.products.find({
     name: "samsung",
     tags: "popular"
 }).explain()
-
 
 // create index text
 db.products.createIndex({
@@ -731,7 +737,7 @@ db.products.createIndex({
         tags: 1
     }
 })
-
+db.products.getIndexes()
 // search products with text "mie"
 db.products.find({
     $text: {
@@ -767,7 +773,7 @@ db.products.find({
     }
 }).explain()
 
-// meta
+// meta operator bermanfaat kalau mau melakukan proses debugging
 db.products.find({
     $text: {
         $search: 'mie laptop'
@@ -778,16 +784,18 @@ db.products.find({
     }
 })
 
-// membuat wild card index
+
+// membuat wild card index Asc, semakin besar pakai wild card akan memperlambat insert dan updatenya makin lambat
+// karena index jadi makenya harus bijak
 db.customers.createIndex({
     "customFields.$**" : 1
 })
-
+db.customers.getIndexes()
 // insert many customers
 db.customers.insertMany([
     {
-        _id: "budi",
-        full_name: "Budi",
+        _id: "aidil1",
+        full_name: "AidilAdam",
         customFields: {
             hobby: "Gaming",
             university: "Universitas Belum Ada"
